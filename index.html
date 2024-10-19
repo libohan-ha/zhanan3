@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>渣男回复网站</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff6a00, #ee0979);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 400px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #ff6a00;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ee0979;
+        }
+
+        .card {
+            background-color: #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        #progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #progress-bar div {
+            height: 20px;
+            width: 0;
+            background-color: #ff6a00;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>渣男回复网站</h1>
+        <input type="text" id="messageInput" placeholder="输入你的话...">
+        <button id="sendRequest">获取回复</button>
+
+        <!-- 进度条 -->
+        <div id="progress-bar">
+            <div></div>
+        </div>
+
+        <div id="responseCard" class="card" style="display: none;">
+            <p id="response"></p>
+        </div>
+    </div>
+
+    <script>
+        function startProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const progress = progressBar.querySelector('div');
+            progressBar.style.display = 'block';
+            progress.style.width = '0';
+
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 10; // 控制进度增长的速度
+                    progress.style.width = width + '%';
+                }
+            }, 400);
+        }
+
+        function stopProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const progress = progressBar.querySelector('div');
+            progress.style.width = '100%'; // 确保进度条完成
+            setTimeout(() => {
+                progressBar.style.display = 'none'; // 隐藏进度条
+            }, 500);
+        }
+
+        async function fetchResponse() {
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) {
+                alert("请输入你想说的话！");
+                return;
+            }
+
+            // 开始进度条
+            startProgressBar();
+
+            const apiKey = 'sk-j29yjWFosoZKE247028dD1F7961c49F59b78E6767b889d58'; // 请替换为实际API密钥
+            const url = 'https://xiaoai.plus/v1/chat/completions';
+
+            const data = {
+                model: "gpt-4o",
+                messages: [
+                    { role: "system", content: "你现在扮演一个渣男，会撩妹、说话扣人心弦、回复简洁就一句话。" },
+                    { role: "user", content: message }
+                ]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! 状态: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const reply = result.choices[0]?.message.content || '没有返回结果。';
+
+                document.getElementById('response').textContent = reply;
+                document.getElementById('responseCard').style.display = 'block';
+
+            } catch (error) {
+                console.error('请求失败:', error);
+                document.getElementById('response').textContent = `请求失败: ${error.message}`;
+                document.getElementById('responseCard').style.display = 'block';
+            } finally {
+                // 停止进度条
+                stopProgressBar();
+            }
+        }
+
+        document.getElementById('sendRequest').addEventListener('click', fetchResponse);
+        document.getElementById('messageInput').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                fetchResponse();
+            }
+        });
+    </script>
+</body>
+</html>
